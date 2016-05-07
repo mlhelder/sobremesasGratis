@@ -7,3 +7,6 @@ one sig Lanchonete {
 sig Cliente {
 	pedidos : Pedido
 }
+
+sig Pedido{
+}
