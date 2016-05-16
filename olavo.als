@@ -79,11 +79,13 @@ fact{
 	all l:Lanche, t: Time-first | (one p: Pedido| l in lanchesDeUmPedido[p, t])
 
 	//Especificacao da Promocao 1
-	all p: Promo_Um, t: Time-first | (#lanchesDeUmPedido[p, t] :> Salgado >= 2 and (#bebidasDeUmPedido[p, t] :> Suco >= 1 or #bebidasDeUmPedido[p, t] :> Refrigerante >= 1)) or (#lanchesDeUmPedido[p, t] :> Sanduiche >= 2 and (#bebidasDeUmPedido[p, t] :> Suco >= 1 or #bebidasDeUmPedido[p, t] :> Refrigerante >= 1))
+	all p: Promo_Um, t: Time-first | isPromocaoUm[p , t]
 
 	//Especificacao da Promocao 2
-	all p: Promo_Dois, t: Time-first | (#lanchesDeUmPedido[p, t] :> Salgado >= 2 and #lanchesDeUmPedido[p, t] :> Sanduiche >= 1 and  #bebidasDeUmPedido[p, t] :> Refrigerante >= 1) or (#lanchesDeUmPedido[p, t] :> Sanduiche >= 2 and #lanchesDeUmPedido[p, t] :> Salgado >= 1 and  #bebidasDeUmPedido[p, t] :> Refrigerante >= 1)
-	 
+	all p: Promo_Dois, t: Time-first | isPromocaoDois[p, t]
+	
+	//Restringe que os pedidos simples não se encaixem nas promoções	
+	all p: Pedido_Simples, t: Time-first | !isPromocaoUm[p , t] and !isPromocaoDois[p , t]
 
 
 }
@@ -101,6 +103,20 @@ pred addPedido[p:Pedido, c:Cliente, t,t':Time]{
 	pedidosDeUmCliente[c, t'] = pedidosDeUmCliente[c, t] + p
 	
 
+}
+
+pred isPromocaoUm[p: Pedido, t: Time] {
+	(((((#lanchesDeUmPedido[p, t] :> Salgado >= 2 and no lanchesDeUmPedido[p, t] :> Sanduiche) and ((one bebidasDeUmPedido[p, t] :> Suco and no bebidasDeUmPedido[p, t] :> Refrigerante)
+	or (one bebidasDeUmPedido[p, t] :> Refrigerante and no bebidasDeUmPedido[p,t ] :> Suco))) or ((#lanchesDeUmPedido[p, t] :> Sanduiche >= 2 and no lanchesDeUmPedido[p, t] :> Salgado)
+	and ((one bebidasDeUmPedido[p, t] :> Suco and no bebidasDeUmPedido[p, t] :> Refrigerante) or (one bebidasDeUmPedido[p, t] :> Refrigerante and no bebidasDeUmPedido[p, t] :> Suco))))
+	and no bebidasDeUmPedido[p,t] :> Agua) and no lanchesDeUmPedido[p, t] :> Fatia_de_Torta) and ((one lanchesDeUmPedido[p, t] :> Brigadeiro and no lanchesDeUmPedido[p, t] :> Pudim)
+	or (one lanchesDeUmPedido[p, t] :> Pudim and no lanchesDeUmPedido[p, t] :> Brigadeiro))
+}
+pred isPromocaoDois[p: Pedido, t: Time] {
+	(((((((#lanchesDeUmPedido[p, t] :> Salgado = 2 and some lanchesDeUmPedido[p, t] :> Sanduiche) and one bebidasDeUmPedido[p, t] :> Refrigerante)
+	or ((#lanchesDeUmPedido[p, t] :> Sanduiche = 2 and some lanchesDeUmPedido[p, t] :> Salgado) and  one bebidasDeUmPedido[p, t] :> Refrigerante))
+	and one lanchesDeUmPedido[p, t] :> Fatia_de_Torta) and no lanchesDeUmPedido[p,t] :> Pudim) and no lanchesDeUmPedido[p,t] :> Brigadeiro)
+	and no bebidasDeUmPedido[p, t] :> Suco) and no bebidasDeUmPedido[p, t] :> Agua
 }
 
 fun clientesDaLanchonete [l: Lanchonete, t: Time] : set Cliente {
