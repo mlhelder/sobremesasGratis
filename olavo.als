@@ -58,49 +58,65 @@ fact traces{
 fact{
 
 	//todos os clientes estão na lanchonete
-	all cliente: Cliente, t:Time-first | cliente in (Lanchonete.clientes).t
+	all cliente: Cliente, t:Time-first | cliente in clientesDaLanchonete[Lanchonete, t]
 
 	//cada cliente tem no maximo 5 pedidos
-	all cliente: Cliente, t: Time-first | #(cliente.meu_pedido).t <= 5
+	all cliente: Cliente, t: Time-first | #pedidosDeUmCliente[cliente, t] <= 5
 
 
 	//cada pedido pertence a apenas um cliente
-	all p: Pedido, t: Time-first | (one c: Cliente | p in (c.meu_pedido).t)
+	all p: Pedido, t: Time-first | (one c: Cliente | p in pedidosDeUmCliente[c, t])
 
 	// todos lanches e bebidas estão em um pedido
-	all l: Lanche, t: Time-first | l in (Pedido.lanche).t
-	all bebida: Bebida, t: Time-first | bebida in (Pedido.bebidas).t
+	all l: Lanche, t: Time-first | l in lanchesDeUmPedido[Pedido, t]
+	all bebida: Bebida, t: Time-first | bebida in bebidasDeUmPedido[Pedido, t]
 
 	//cada pedido tem um lanche ou uma bebida
-	all p : Pedido, t: Time-first | (some (p.bebidas).t) or (some (p.lanche).t)
+	all p : Pedido, t: Time-first | (some (p.bebidas).t) or (some lanchesDeUmPedido[p, t])
 
 	//cada bebida ou lanche pertence a apenas um pedido
-	all b:Bebida, t: Time-first | (one p: Pedido| b in (p.bebidas).t)
-	all l:Lanche, t: Time-first | (one p: Pedido| l in (p.lanche).t)
+	all b:Bebida, t: Time-first | (one p: Pedido| b in bebidasDeUmPedido[p, t])
+	all l:Lanche, t: Time-first | (one p: Pedido| l in lanchesDeUmPedido[p, t])
 
 	//Especificacao da Promocao 1
-	all p: Promo_Um, t: Time-first | (#(p.lanche).t :> Salgado >= 2 and (#(p.bebidas).t :> Suco >= 1 or #(p.bebidas).t :> Refrigerante >= 1)) or (#(p.lanche).t :> Sanduiche >= 2 and (#(p.bebidas).t :> Suco >= 1 or #(p.bebidas).t :> Refrigerante >= 1))
+	all p: Promo_Um, t: Time-first | (#lanchesDeUmPedido[p, t] :> Salgado >= 2 and (#bebidasDeUmPedido[p, t] :> Suco >= 1 or #bebidasDeUmPedido[p, t] :> Refrigerante >= 1)) or (#lanchesDeUmPedido[p, t] :> Sanduiche >= 2 and (#bebidasDeUmPedido[p, t] :> Suco >= 1 or #bebidasDeUmPedido[p, t] :> Refrigerante >= 1))
 
 	//Especificacao da Promocao 2
-	all p: Promo_Dois, t: Time-first | (#(p.lanche).t :> Salgado >= 2 and #(p.lanche).t :> Sanduiche >= 1 and  #(p.bebidas).t :> Refrigerante >= 1) or (#(p.lanche).t :> Sanduiche >= 2 and #(p.lanche).t :> Salgado >= 1 and  #(p.bebidas).t :> Refrigerante >= 1)
+	all p: Promo_Dois, t: Time-first | (#lanchesDeUmPedido[p, t] :> Salgado >= 2 and #lanchesDeUmPedido[p, t] :> Sanduiche >= 1 and  #bebidasDeUmPedido[p, t] :> Refrigerante >= 1) or (#lanchesDeUmPedido[p, t] :> Sanduiche >= 2 and #lanchesDeUmPedido[p, t] :> Salgado >= 1 and  #bebidasDeUmPedido[p, t] :> Refrigerante >= 1)
 	 
 
 
 }
 
 pred init [t : Time] {
-	no (Lanchonete.clientes).t
-	all p:Pedido | no (p.lanche).t and no (p.bebidas).t
-	all c:Cliente | no (c.meu_pedido).t
+	no clientesDaLanchonete[Lanchonete, t]
+	all p:Pedido | no lanchesDeUmPedido[p, t] and no bebidasDeUmPedido[p, t]
+	all c:Cliente | no pedidosDeUmCliente[c, t]
  
 }
 
 
 pred addPedido[p:Pedido, c:Cliente, t,t':Time]{
-	p !in (c.meu_pedido).t
-	(c.meu_pedido).t' = (c.meu_pedido).t + p
+	p !in pedidosDeUmCliente[c, t]
+	pedidosDeUmCliente[c, t'] = pedidosDeUmCliente[c, t] + p
 	
 
+}
+
+fun clientesDaLanchonete [l: Lanchonete, t: Time] : set Cliente {
+	(l.clientes).t
+}
+
+fun pedidosDeUmCliente [c: Cliente, t: Time] : set Pedido {
+	(c.meu_pedido).t
+}
+
+fun lanchesDeUmPedido [p: Pedido, t: Time] : set Lanche {
+	(p.lanche).t
+}
+
+fun bebidasDeUmPedido [p: Pedido, t: Time] : set Bebida {
+	(p.bebidas).t
 }
 
 pred show() {
