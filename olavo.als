@@ -72,7 +72,7 @@ fact{
 	all bebida: Bebida, t: Time-first | bebida in bebidasDeUmPedido[Pedido, t]
 
 	//cada pedido tem um lanche ou uma bebida
-	all p : Pedido, t: Time-first | (some (p.bebidas).t) or (some lanchesDeUmPedido[p, t])
+	all p : Pedido, t: Time-first | (some bebidasDeUmPedido[p, t]) or (some lanchesDeUmPedido[p, t])
 
 	//cada bebida ou lanche pertence a apenas um pedido
 	all b:Bebida, t: Time-first | (one p: Pedido| b in bebidasDeUmPedido[p, t])
