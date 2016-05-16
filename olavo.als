@@ -84,7 +84,7 @@ fact{
 	//Especificacao da Promocao 2
 	all p: Promo_Dois, t: Time-first | isPromocaoDois[p, t]
 	
-	//Restringe que os pedidos simples não se encaixem nas promoções	
+	//Restringe que os pedidos simples não sejam promoções	
 	all p: Pedido_Simples, t: Time-first | !isPromocaoUm[p , t] and !isPromocaoDois[p , t]
 
 
@@ -105,6 +105,11 @@ pred addPedido[p:Pedido, c:Cliente, t,t':Time]{
 
 }
 
+/*Se o pedido tiver 2 ou mais Salgados então não tem nenhum Sanduiche e tem que ter um Suco e nenhum Refrigerante 
+ou então um Refrigerante e nenhum Suco (não pode ter Suco e Refrigerante ao mesmo tempo)
+ou se o pedido tiver 2 ou mais Sanduiches então não tem nenhum Salgado  e tem que ter um Suco
+e nenhum Refrigerante ou então um Refrigerante e nenhum Suco (não pode ter Suco e Refrigerante ao mesmo tempo).
+O pedido não pode ter Agua e nem Fatia de Torta. Só pode ter um Brigadeiro e nenhum Pudim ou então um Pudim e nenhum Brigadeiro (nunca os dois ao mesmo tempo).*/
 pred isPromocaoUm[p: Pedido, t: Time] {
 	(((((#lanchesDeUmPedido[p, t] :> Salgado >= 2 and no lanchesDeUmPedido[p, t] :> Sanduiche) and ((one bebidasDeUmPedido[p, t] :> Suco and no bebidasDeUmPedido[p, t] :> Refrigerante)
 	or (one bebidasDeUmPedido[p, t] :> Refrigerante and no bebidasDeUmPedido[p,t ] :> Suco))) or ((#lanchesDeUmPedido[p, t] :> Sanduiche >= 2 and no lanchesDeUmPedido[p, t] :> Salgado)
@@ -112,6 +117,9 @@ pred isPromocaoUm[p: Pedido, t: Time] {
 	and no bebidasDeUmPedido[p,t] :> Agua) and no lanchesDeUmPedido[p, t] :> Fatia_de_Torta) and ((one lanchesDeUmPedido[p, t] :> Brigadeiro and no lanchesDeUmPedido[p, t] :> Pudim)
 	or (one lanchesDeUmPedido[p, t] :> Pudim and no lanchesDeUmPedido[p, t] :> Brigadeiro))
 }
+
+/*O pedido deve ter 2 Salgados e mais de um Sanduiche e um Refrigerante ou deve ter 2 Sanduiches e mais de um Salgado e um Refrigerante.
+O pedido deve ter também uma Fatia_de_Torta. O pedido não pode ter Pudim, nem Brigadeiro, nem Suco e nem Agua.*/
 pred isPromocaoDois[p: Pedido, t: Time] {
 	(((((((#lanchesDeUmPedido[p, t] :> Salgado = 2 and some lanchesDeUmPedido[p, t] :> Sanduiche) and one bebidasDeUmPedido[p, t] :> Refrigerante)
 	or ((#lanchesDeUmPedido[p, t] :> Sanduiche = 2 and some lanchesDeUmPedido[p, t] :> Salgado) and  one bebidasDeUmPedido[p, t] :> Refrigerante))
@@ -119,18 +127,22 @@ pred isPromocaoDois[p: Pedido, t: Time] {
 	and no bebidasDeUmPedido[p, t] :> Suco) and no bebidasDeUmPedido[p, t] :> Agua
 }
 
+//Funcao que retorna o conjunto de clientes da Lanchonete
 fun clientesDaLanchonete [l: Lanchonete, t: Time] : set Cliente {
 	(l.clientes).t
 }
 
+ //Funcao que retorna o conjunto de pedidos de um Cliente
 fun pedidosDeUmCliente [c: Cliente, t: Time] : set Pedido {
 	(c.meu_pedido).t
 }
 
+//Funcao que retorna o conjunto de lanches de um Pedido
 fun lanchesDeUmPedido [p: Pedido, t: Time] : set Lanche {
 	(p.lanche).t
 }
 
+//Funcao que retorna o conjunto de bebidas de um Pedido
 fun bebidasDeUmPedido [p: Pedido, t: Time] : set Bebida {
 	(p.bebidas).t
 }
