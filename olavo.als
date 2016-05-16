@@ -78,6 +78,12 @@ fact{
 	all b:Bebida, t: Time-first | (one p: Pedido| b in (p.bebidas).t)
 	all l:Lanche, t: Time-first | (one p: Pedido| l in (p.lanche).t)
 
+	//Especificacao da Promocao 1
+	all p: Promo_Um, t: Time-first | (#(p.lanche).t :> Salgado >= 2 and (#(p.bebidas).t :> Suco >= 1 or #(p.bebidas).t :> Refrigerante >= 1)) or (#(p.lanche).t :> Sanduiche >= 2 and (#(p.bebidas).t :> Suco >= 1 or #(p.bebidas).t :> Refrigerante >= 1))
+
+	//Especificacao da Promocao 2
+	all p: Promo_Dois, t: Time-first | (#(p.lanche).t :> Salgado >= 2 and #(p.lanche).t :> Sanduiche >= 1 and  #(p.bebidas).t :> Refrigerante >= 1) or (#(p.lanche).t :> Sanduiche >= 2 and #(p.lanche).t :> Salgado >= 1 and  #(p.bebidas).t :> Refrigerante >= 1)
+	 
 
 
 }
