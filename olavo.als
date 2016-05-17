@@ -51,9 +51,21 @@ sig Brigadeiro extends Sobremesa{}
 fact traces{
     init[first]
 		all pre: Time-last | let pos = pre.next |
-			some c:Cliente, p:Pedido |
-			addPedido[p,c,pre,pos]
+			some c:Cliente, p:Pedido , l:Lanche, b:Bebida, s:Sobremesa |
+			addPedido[p,c,pre,pos] or
+			addComida[p,l,pre,pos] or
+			addBebida[p,b,pre,pos] or
+			addSobremesa[p,s,pre,pos]
 		
+}
+
+fact {
+	//Quantidade de itens
+	#Lanche <= 15
+	#Salgado <= 15
+	#Sanduiche <= 10
+	#Bebida <= 10
+	#Sobremesa <= 5
 }
 
 fact{
@@ -61,8 +73,8 @@ fact{
 	//todos os clientes estão na lanchonete
 	all cliente: Cliente, t:Time-first | cliente in clientesDaLanchonete[Lanchonete, t]
 
-	//cada cliente tem no maximo 5 pedidos
-	all cliente: Cliente, t: Time-first | #pedidosDeUmCliente[cliente, t] <= 5
+	//cada cliente tem no maximo 2 pedidos
+	all cliente: Cliente, t: Time-first | #pedidosDeUmCliente[cliente, t] <= 5 and #pedidosDeUmCliente[cliente, t] >= 1
 
 	//cada pedido pertence a apenas um cliente
 	all p: Pedido, t: Time-first | (one c: Cliente | p in pedidosDeUmCliente[c, t])
@@ -87,15 +99,6 @@ fact{
 	//Restringe que os pedidos simples não sejam promoções	
 	all p: Pedido_Simples, t: Time-first | !isPromocaoUm[p , t] and !isPromocaoDois[p , t]
 
-
-
-	//Quantidade de itens
-	#Lanche <= 15
-	#Salgado <= 5
-	#Sanduiche <= 5
-	#Bebida <= 10
-	#Sobremesa <= 5
-
 }
 
 ------------------------------------------------------------------------- PREDICADOS -------------------------------------------------------------------------
@@ -108,13 +111,31 @@ pred init [t : Time] {
  
 }
 
-
+// Adiciona os pedidos aos clientes.
 pred addPedido[p:Pedido, c:Cliente, t,t':Time]{
 	p !in pedidosDeUmCliente[c, t]
 	pedidosDeUmCliente[c, t'] = pedidosDeUmCliente[c, t] + p
 	
-
 }
+// Adiciona comida ao pedido
+
+pred addComida[p: Pedido, l:Lanche , t, t': Time]{
+	l !in (p.lanche).t
+	(p.lanche).t' = (p.lanche).t + l
+}
+
+// Adiciona Bebida ao pedido
+pred addBebida[p: Pedido, b:Bebida, t, t': Time]{
+	b !in (p.bebidas).t
+	(p.bebidas).t' = (p.bebidas).t + b
+}
+
+// Adiciona sobremesa ao pedido
+pred addSobremesa[p: Pedido, s:Sobremesa, t, t': Time]{
+	s !in (p.lanche).t
+	(p.lanche).t' = (p.lanche).t + s
+}
+
 
 /* Especificação da Promoção 1 mais estrita
 Se o pedido tiver 2 ou mais Salgados então não tem nenhum Sanduiche e tem que ter um Suco e nenhum Refrigerante 
@@ -161,6 +182,8 @@ pred isPromocaoDois[p: Pedido, t: Time] {
 */
 
 
+
+
 ------------------------------------------------------------------------- FUNÇÕES -------------------------------------------------------------------------
 
 //Funcao que retorna o conjunto de clientes da Lanchonete
@@ -181,6 +204,10 @@ fun lanchesDeUmPedido [p: Pedido, t: Time] : set Lanche {
 //Funcao que retorna o conjunto de bebidas de um Pedido
 fun bebidasDeUmPedido [p: Pedido, t: Time] : set Bebida {
 	(p.bebidas).t
+}
+
+fun sobremesasDeUmPedido[p:Pedido,t:Time]: set Lanche{
+((p.lanche).t & (Pudim + Fatia_de_Torta + Brigadeiro))
 }
 
 ------------------------------------------------------------------------- ASSERTS -------------------------------------------------------------------------
@@ -210,11 +237,12 @@ assert noPedidoSemCliente {
 ------------------------------------------------------------------------- CHECKS -------------------------------------------------------------------------
 
 
---check noPedidoVazio for 20
+//check noPedidoVazio for 20
 
---check noPedidoSemCliente for 20
+//check noPedidoSemCliente for 20
 
---check promoUm for 20
+//check promoUm for 20
+
 
 
 
@@ -223,4 +251,4 @@ pred show() {
 //#meu_pedido = 2
 }
 
-run show for 7 but exactly 2 Promo_Um
+run show for 10 but exactly 2 Promo_Um
