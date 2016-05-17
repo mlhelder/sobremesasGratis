@@ -56,13 +56,22 @@ fact traces{
 		
 }
 
+fact {
+	//Quantidade de itens
+	#Lanche <= 15
+	#Salgado <= 15
+	#Sanduiche <= 10
+	#Bebida <= 10
+	#Sobremesa <= 5
+}
+
 fact{
 
 	//todos os clientes estão na lanchonete
 	all cliente: Cliente, t:Time-first | cliente in clientesDaLanchonete[Lanchonete, t]
 
-	//cada cliente tem no maximo 5 pedidos
-	all cliente: Cliente, t: Time-first | #pedidosDeUmCliente[cliente, t] <= 5
+	//cada cliente tem no maximo 2 pedidos
+	all cliente: Cliente, t: Time-first | #pedidosDeUmCliente[cliente, t] <= 2
 
 	//cada pedido pertence a apenas um cliente
 	all p: Pedido, t: Time-first | (one c: Cliente | p in pedidosDeUmCliente[c, t])
@@ -87,15 +96,6 @@ fact{
 	//Restringe que os pedidos simples não sejam promoções	
 	all p: Pedido_Simples, t: Time-first | !isPromocaoUm[p , t] and !isPromocaoDois[p , t]
 
-
-
-	//Quantidade de itens
-	#Lanche <= 15
-	#Salgado <= 5
-	#Sanduiche <= 5
-	#Bebida <= 10
-	#Sobremesa <= 5
-
 }
 
 ------------------------------------------------------------------------- PREDICADOS -------------------------------------------------------------------------
@@ -108,7 +108,7 @@ pred init [t : Time] {
  
 }
 
-
+// Adiciona os pedidos aos clientes.
 pred addPedido[p:Pedido, c:Cliente, t,t':Time]{
 	p !in pedidosDeUmCliente[c, t]
 	pedidosDeUmCliente[c, t'] = pedidosDeUmCliente[c, t] + p
@@ -183,6 +183,10 @@ fun bebidasDeUmPedido [p: Pedido, t: Time] : set Bebida {
 	(p.bebidas).t
 }
 
+fun sobremesasDeUmPedido[p:Pedido,t:Time]: set Lanche{
+((p.lanche).t & (Pudim + Fatia_de_Torta + Brigadeiro))
+}
+
 ------------------------------------------------------------------------- ASSERTS -------------------------------------------------------------------------
 
 assert promoUm{
@@ -210,11 +214,11 @@ assert noPedidoSemCliente {
 ------------------------------------------------------------------------- CHECKS -------------------------------------------------------------------------
 
 
-check noPedidoVazio for 20
+//check noPedidoVazio for 20
 
-check noPedidoSemCliente for 20
+//check noPedidoSemCliente for 20
 
-check promoUm for 20
+//check promoUm for 20
 
 
 
