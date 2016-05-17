@@ -210,11 +210,11 @@ assert noPedidoSemCliente {
 ------------------------------------------------------------------------- CHECKS -------------------------------------------------------------------------
 
 
-check noPedidoVazio for 20
+--check noPedidoVazio for 20
 
-check noPedidoSemCliente for 20
+--check noPedidoSemCliente for 20
 
-check promoUm for 20
+--check promoUm for 20
 
 
 
@@ -223,4 +223,4 @@ pred show() {
 //#meu_pedido = 2
 }
 
-run show for 7 but exactly 7 Pedido
+run show for 7 but exactly 2 Promo_Um
