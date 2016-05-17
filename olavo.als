@@ -46,6 +46,7 @@ sig Brigadeiro extends Sobremesa{}
 
 
 
+------------------------------------------------------------------------- FATOS -------------------------------------------------------------------------
 
 fact traces{
     init[first]
@@ -62,7 +63,6 @@ fact{
 
 	//cada cliente tem no maximo 5 pedidos
 	all cliente: Cliente, t: Time-first | #pedidosDeUmCliente[cliente, t] <= 5
-
 
 	//cada pedido pertence a apenas um cliente
 	all p: Pedido, t: Time-first | (one c: Cliente | p in pedidosDeUmCliente[c, t])
@@ -88,7 +88,18 @@ fact{
 	all p: Pedido_Simples, t: Time-first | !isPromocaoUm[p , t] and !isPromocaoDois[p , t]
 
 
+
+	//Quantidade de itens
+	#Lanche <= 15
+	#Salgado <= 5
+	#Sanduiche <= 5
+	#Bebida <= 10
+	#Sobremesa <= 5
+
 }
+
+------------------------------------------------------------------------- PREDICADOS -------------------------------------------------------------------------
+
 
 pred init [t : Time] {
 	no clientesDaLanchonete[Lanchonete, t]
@@ -149,6 +160,9 @@ pred isPromocaoDois[p: Pedido, t: Time] {
 }
 */
 
+
+------------------------------------------------------------------------- FUNÇÕES -------------------------------------------------------------------------
+
 //Funcao que retorna o conjunto de clientes da Lanchonete
 fun clientesDaLanchonete [l: Lanchonete, t: Time] : set Cliente {
 	(l.clientes).t
@@ -168,6 +182,42 @@ fun lanchesDeUmPedido [p: Pedido, t: Time] : set Lanche {
 fun bebidasDeUmPedido [p: Pedido, t: Time] : set Bebida {
 	(p.bebidas).t
 }
+
+------------------------------------------------------------------------- ASSERTS -------------------------------------------------------------------------
+
+assert promoUm{
+	/*
+	* Procura um pacote um que nao atende as especificaçao do pacote
+	*/
+	!some p: Promo_Um, t: Time-first | no bebidasDeUmPedido[p,t]  and 	#((lanchesDeUmPedido[p,t]) & (Coxinha + Pastel + Empada)) < 2 and 
+	#((lanchesDeUmPedido[p,t]) & (Sanduiche_de_Frango + Sanduiche_de_Atum)) < 2 and #((lanchesDeUmPedido[p,t]) & (Pudim +Fatia_de_Torta + Brigadeiro)) < 2 
+}
+
+assert noPedidoVazio{
+	/*
+	* Procura um pedido que nao tenha nem comida nem bebida
+	*/
+	!some p: Pedido | no p.bebidas and no p.lanche
+}
+
+assert noPedidoSemCliente {
+	/*
+	* Procura se exite pedido sem cliente
+	*/
+	!some p: Pedido| all t: Time-first | (all c: Cliente | p !in (c.meu_pedido).t) 
+}
+
+------------------------------------------------------------------------- CHECKS -------------------------------------------------------------------------
+
+
+check noPedidoVazio for 20
+
+check noPedidoSemCliente for 20
+
+check promoUm for 20
+
+
+
 
 pred show() {
 //#meu_pedido = 2
